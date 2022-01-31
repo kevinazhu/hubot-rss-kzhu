@@ -232,7 +232,7 @@ module.exports = (RSSChecker = (function() {
         deleteRoom(name, myname, myuser) {
             return new Promise((resolve, reject) => {
                 let needle;
-                if ( (name === myname) || (needle = myuser, Array.from(process.env.HUBOT_RSS_DUMP_USERS.split(",")).includes(needle)) ) {
+                if ( (name === myname) || (needle = myuser, Array.from(process.env.HUBOT_RSS_ADMIN_USERS.split(",")).includes(needle)) ) {
                     const rooms = this.getAllFeeds() || {};
                     if (!rooms.hasOwnProperty(name)) {
                         return reject(`room #${name} is not exists`);

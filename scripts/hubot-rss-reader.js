@@ -40,7 +40,7 @@ if (!process.env.HUBOT_RSS_PRINTMARKDOWN) { process.env.HUBOT_RSS_PRINTMARKDOWN 
 if (!process.env.HUBOT_RSS_PRINTERROR) { process.env.HUBOT_RSS_PRINTERROR = "true"; }
 if (!process.env.HUBOT_RSS_IRCCOLORS) { process.env.HUBOT_RSS_IRCCOLORS = "false"; }
 if (!process.env.HUBOT_RSS_LIMIT_ON_ADD) { process.env.HUBOT_RSS_LIMIT_ON_ADD = 5; }
-if (!process.env.HUBOT_RSS_DUMP_USERS) { process.env.HUBOT_RSS_DUMP_USERS = ""; }
+if (!process.env.HUBOT_RSS_ADMIN_USERS) { process.env.HUBOT_RSS_ADMIN_USERS = ""; }
 
 module.exports = function(robot) {
 
@@ -226,7 +226,7 @@ module.exports = function(robot) {
 
     return robot.respond(/rss dump$/i, function(msg) {
         let needle;
-        if ((needle = msg.message.user.name, Array.from(process.env.HUBOT_RSS_DUMP_USERS.split(",")).includes(needle))) {
+        if ((needle = msg.message.user.name, Array.from(process.env.HUBOT_RSS_ADMIN_USERS.split(",")).includes(needle))) {
             const feeds = checker.getAllFeeds();
             if (process.env.HUBOT_RSS_PRINTMARKDOWN === "true") {
                 return msg.send(`\`\`\`${JSON.stringify(feeds, null, 2)}\`\`\``);
