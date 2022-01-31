@@ -2,10 +2,7 @@ Hubot RSS Reader
 ================
 RSS Reader for each Chat Channels, works with Hubot.
 
-[![npm version](https://badge.fury.io/js/hubot-rss-rolf.svg)](https://badge.fury.io/js/hubot-rss-rolf)
-
-- https://github.com/Flipez/hubot-rss-rolf
-- https://www.npmjs.org/package/hubot-rss-rolf
+- https://github.com/kevinazhu/hubot-rss-kzhu
 
 ![screen shot](http://gyazo.com/234dfb14d76bb3de9efd88bfe8dc6522.png)
 
@@ -13,17 +10,17 @@ Requirements
 ------------
 
 - hubot-brain
-  - recommend [hubot-redis-brain](https://github.com/hubotio/hubot-redis-brain).
+  - recommend [hubot-mongodb-brain-kzhu](https://github.com/kevinazhu/hubot-mongodb-brain-kzhu).
 
 Install
 -------
 
-    % npm install hubot-rss-rolf -save
+    % yarn add kevinazhu/hubot-rss-kzhu
 
 ### edit `external-script.json`
 
 ```json
-["hubot-rss-rolf"]
+["hubot-rss-kzhu"]
 ```
 
 ### Configure (ENV vars)
@@ -63,6 +60,7 @@ Usage
 ## About
 
 This project was forked from [hubot-rss-reader](https://github.com/shokai/hubot-rss-reader)
-from [shokai](https://github.com/shokai) with the fix from [yynozk](https://github.com/yynozk)
-and published as [hubot-rss-rolf](https://www.npmjs.com/package/hubot-rss-rolf) to make it useable for rocketchat again.
+from [shokai](https://github.com/shokai) with the fixes from [yynozk](https://github.com/yynozk)
+and [hubot-rss-rolf](https://www.npmjs.com/package/hubot-rss-rolf), while also fixing other minor bugs
+to make it useable for rocketchat again.
 
