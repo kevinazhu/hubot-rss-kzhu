@@ -22,18 +22,23 @@
 
 'use strict';
 
+const fs         = require('fs');
 const path       = require('path');
 const _          = require('lodash');
 const debug      = require('debug')('hubot-rss-reader');
+const request    = require('request');
 const Promise    = require('bluebird');
 const RSSChecker = require(path.join(__dirname, '../libs/rss-checker'));
 const FindRSS    = Promise.promisify(require('find-rss'));
+const { Curl }   = require('node-libcurl');
+const { getLinkPreview } = require('link-preview-js');
+const download   = require('image-downloader')
 
 //# config
 const package_json = require(path.join(__dirname, '../package.json'));
 if (!process.env.HUBOT_RSS_INTERVAL) { process.env.HUBOT_RSS_INTERVAL = 60*10; }  // 10 minutes
 if (!process.env.HUBOT_RSS_HEADER) { process.env.HUBOT_RSS_HEADER = ':sushi:'; }
-if (!process.env.HUBOT_RSS_USERAGENT) { process.env.HUBOT_RSS_USERAGENT = `hubot-rss-rolf/${package_json.version}`; }
+if (!process.env.HUBOT_RSS_USERAGENT) { process.env.HUBOT_RSS_USERAGENT = `hubot-rss-kzhu/${package_json.version}`; }
 if (!process.env.HUBOT_RSS_PRINTSUMMARY) { process.env.HUBOT_RSS_PRINTSUMMARY = "true"; }
 if (!process.env.HUBOT_RSS_PRINTIMAGE) { process.env.HUBOT_RSS_PRINTIMAGE = "true"; }
 if (!process.env.HUBOT_RSS_PRINTMARKDOWN) { process.env.HUBOT_RSS_PRINTMARKDOWN = "false"; }
@@ -41,8 +46,24 @@ if (!process.env.HUBOT_RSS_PRINTERROR) { process.env.HUBOT_RSS_PRINTERROR = "tru
 if (!process.env.HUBOT_RSS_IRCCOLORS) { process.env.HUBOT_RSS_IRCCOLORS = "false"; }
 if (!process.env.HUBOT_RSS_LIMIT_ON_ADD) { process.env.HUBOT_RSS_LIMIT_ON_ADD = 5; }
 if (!process.env.HUBOT_RSS_ADMIN_USERS) { process.env.HUBOT_RSS_ADMIN_USERS = ""; }
+if (!process.env.HUBOT_RSS_UPLOADIMAGEPREVIEW) { process.env.HUBOT_RSS_UPLOADIMAGEPREVIEW = "true"; }
 
 module.exports = function(robot) {
+    var authHeaders = null;
+    const loggedIn = function() {
+        return (authHeaders !== null)
+    }
+    const login = async function() {
+        try {
+            var result = await robot.adapter.api.login();
+            authHeaders = [
+                'X-User-Id: ' + result.data.userId,
+                'X-Auth-Token: ' + result.data.authToken
+            ]
+        } catch(err) {
+            robot.logger.error(err);
+        }
+    }
 
     const logger = {
         info(msg) {
@@ -58,7 +79,7 @@ module.exports = function(robot) {
     };
 
     const send_queue = [];
-    const send = (envelope, body) => send_queue.push({envelope, body});
+    const send = (room, body, url=null) => send_queue.push({room, body, url});
 
     const getRoom = function(msg) {
         switch (robot.adapterName) {
@@ -69,14 +90,69 @@ module.exports = function(robot) {
         }
     };
 
+    const sendWithImagePreview = async function(roomName, body, url) {
+        if (!loggedIn()) {
+            await login();
+        }
+
+        const file = await downloadLinkPreviewImage(url);
+        robot.adapter.api.get('rooms.info', { roomName }).then(result => {
+            const roomId = result.room._id;
+            const curl = new Curl();
+
+            curl.setOpt(Curl.option.URL, robot.adapter.api.url + 'rooms.upload/' + roomId);
+            curl.setOpt(Curl.option.HTTPHEADER, authHeaders)
+            curl.setOpt(Curl.option.HTTPPOST, [
+                { name: 'file', file },
+                { name: 'msg', contents: body }
+            ]);
+
+            curl.on("end", function (statusCode, data, headers) {
+                fs.unlink(file, (err) => {
+                    if (err) {
+                        robot.logger.error("Unable to delete " + file);
+                    }
+                });
+                this.close();
+            });
+
+            curl.on("error", function (statusCode, data, headers) {
+                robot.logger.error("Status code " + statusCode);
+                robot.logger.error("***");
+                robot.logger.error("Response: " + data);
+                this.close();
+            });
+
+            curl.perform();
+        })
+    }
+
+    const downloadLinkPreviewImage = async function(url) {
+        try {
+            var data = await getLinkPreview(url);
+            if ('images' in data && data.images.length > 0) {
+                const imageLink = data.images[0];
+
+                const { filename } = await download.image({ url: imageLink, dest: '/tmp' });
+                return filename;
+            }
+        } catch(err) {
+            robot.logger.error(err);
+        }
+    }
+
     setInterval(function() {
             if (typeof robot.send !== 'function') { return; }
             if (send_queue.length < 1) { return; }
             const msg = send_queue.shift();
             try {
-                return robot.send(msg.envelope, msg.body);
+                if (msg.url === null || process.env.HUBOT_RSS_UPLOADIMAGEPREVIEW !== "true") {
+                    return robot.send({ room: msg.room }, msg.body);
+                } else {
+                    return sendWithImagePreview(msg.room, msg.body, msg.url);
+                }
             } catch (err) {
-                logger.error(`Error on sending to room: \"${room}\"`);
+                logger.error(`Error on sending to room: \"${msg.room}\"`);
                 return logger.error(err);
             }
         }
@@ -113,10 +189,9 @@ module.exports = function(robot) {
             const object = checker.getAllFeeds();
             for (let room in object) {
                 const feeds = object[room];
-                if ((room !== entry.args.room) &&
-                    _.includes(feeds, entry.feed.url)) {
+                if ((room !== entry.args.room) && _.includes(feeds, entry.feed.url)) {
                     logger.info(`${entry.title} ${entry.url} => ${room}`);
-                    result.push(send({room}, entry.toString()));
+                    result.push(send(room, entry.toString(), entry.url));
                 } else {
                     result.push(undefined);
                 }
@@ -140,7 +215,7 @@ module.exports = function(robot) {
             for (let room in object) {
                 const feeds = object[room];
                 if (_.includes(feeds, err.feed.url)) {
-                    result.push(send({room}, `[ERROR] ${err.feed.url} - ${err.error.message || err.error}`));
+                    result.push(send(room, `[ERROR] ${err.feed.url} - ${err.error.message || err.error}`));
                 } else {
                     result.push(undefined);
                 }
@@ -167,11 +242,11 @@ module.exports = function(robot) {
                             :
                             process.env.HUBOT_RSS_LIMIT_ON_ADD - 0;
                     for (let entry of Array.from(entries.splice(0, entry_limit))) {
-                        send({room}, entry.toString());
+                        logger.info(`${entry.title} ${entry.url} => ${room}`);
+                        send(room, entry.toString(), entry.url);
                     }
                     if (entries.length > 0) {
-                        return send({room},
-                            `${process.env.HUBOT_RSS_HEADER} ${entries.length} entries has been omitted`);
+                        return send(room, `${process.env.HUBOT_RSS_HEADER} ${entries.length} entries has been omitted`);
                     }
                 }
                 , function(err) {
@@ -222,7 +297,7 @@ module.exports = function(robot) {
         }
     });
 
-    robot.respond(/rss\s+version$/i, msg => msg.send(`Moin, this is Rolf (${package_json.version})`));
+    robot.respond(/rss\s+version$/i, msg => msg.send(`RSS Reader Version (${package_json.version})`));
 
     return robot.respond(/rss dump$/i, function(msg) {
         let needle;

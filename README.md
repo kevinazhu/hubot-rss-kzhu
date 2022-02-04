@@ -36,6 +36,7 @@ Install
     export HUBOT_RSS_IRCCOLORS=true     # use IRC color message (default is "false")
     export HUBOT_RSS_LIMIT_ON_ADD=false # limit printing entries on add new feed. (default is 5)
     export HUBOT_RSS_ADMIN_USERS=""      # limit dump to special user (list without spaces eg. "user1,user2")
+    export HUBOT_RSS_UPLOADIMAGEPREVIEW=true  # upload image preview as file (default is "true")
 
 Usage
 -----

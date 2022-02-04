@@ -1,7 +1,7 @@
 {
   "name": "hubot-rss-kzhu",
   "private": false,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Hubot RSS Reader",
   "main": "index.js",
   "keywords": [
@@ -28,8 +28,11 @@
     "find-rss": "^1.6.4",
     "html-entities": "^2.3.2",
     "iconv": "^3.0.1",
+    "image-downloader": "^4.0.3",
     "irc-colors": "^1.5.0",
+    "link-preview-js": "^2.1.10",
     "lodash": "^4.17.21",
+    "node-libcurl": "^2.3.4",
     "request": "^2.88.2"
   },
   "devDependencies": {
