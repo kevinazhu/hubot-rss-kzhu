@@ -1,7 +1,7 @@
 {
   "name": "hubot-rss-kzhu",
   "private": false,
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "Hubot RSS Reader",
   "main": "index.js",
   "keywords": [
