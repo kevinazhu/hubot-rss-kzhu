@@ -13,12 +13,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/kevinazhu/hubot-rss-kzhu.git"
+    "url": "git://github.com/kevinazhu/hubot-rss-reader.git"
   },
   "bugs": {
-    "url": "https://github.com/kevinazhu/hubot-rss-kzhu/issues"
+    "url": "https://github.com/kevinazhu/hubot-rss-reader/issues"
   },
-  "homepage": "https://github.com/kevinazhu/hubot-rss-kzhu",
+  "homepage": "https://github.com/kevinazhu/hubot-rss-reader",
   "dependencies": {
     "async": "^3.2.3",
     "bluebird": "^3.7.2",

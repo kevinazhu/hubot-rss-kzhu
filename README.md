@@ -2,7 +2,7 @@ Hubot RSS Reader
 ================
 RSS Reader for each Chat Channels, works with Hubot.
 
-- https://github.com/kevinazhu/hubot-rss-kzhu
+- https://github.com/kevinazhu/hubot-rss-reader
 
 ![screen shot](http://gyazo.com/234dfb14d76bb3de9efd88bfe8dc6522.png)
 
@@ -10,17 +10,17 @@ Requirements
 ------------
 
 - hubot-brain
-  - recommend [hubot-mongodb-brain-kzhu](https://github.com/kevinazhu/hubot-mongodb-brain-kzhu).
+  - recommend [@kevinazhu/hubot-mongodb-brain](https://github.com/kevinazhu/hubot-mongodb-brain).
 
 Install
 -------
 
-    % yarn add kevinazhu/hubot-rss-kzhu
+    % yarn add @kevinazhu/hubot-rss-reader
 
 ### edit `external-script.json`
 
 ```json
-["hubot-rss-kzhu"]
+["@kevinazhu/hubot-rss-reader"]
 ```
 
 ### Configure (ENV vars)
