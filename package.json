@@ -1,5 +1,5 @@
 {
-  "name": "hubot-rss-kzhu",
+  "name": "@kevinazhu/hubot-rss-reader",
   "private": false,
   "version": "1.0.0",
   "description": "Hubot RSS Reader",
